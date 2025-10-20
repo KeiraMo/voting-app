@@ -3,6 +3,14 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+
+  /* Theme Colours */
+  --plum: #653466;
+  --aubergine: #472566;
+  --grape: #421C52;
+  --blue-violet: #521f83;
+
+
 }
 
 @theme inline {
