@@ -1,4 +1,6 @@
 /**
+ * app/page.tsx
+ * 
  * This is the home/login page of the application.
  */
 "use client";
@@ -8,21 +10,25 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 
 
+
 // Main Home Page Component
 export default function Home() {
   const router = useRouter();
   const [loading, setLoading] = useState<boolean>(false);
 
   /**
-   * Generates a random Room ID.
+   * Creates a new room by calling the API and navigates the user to the newly created room.
    * @return void
    */
-  function createAndJoinRoom(): void {
+  async function createAndJoinRoom(): Promise<void> {
     setLoading(true);
     console.log("Generate button clicked");
-    const newId = Math.random().toString(36).substring(2, 8).toUpperCase();
-    console.log("Generating room", newId);
-    router.push(`/room?roomId=${newId}`); // Navigate to the room page with the new Room ID
+
+    const response = await fetch('/api/createRoom', { method: 'POST' });
+    const data = await response.json();
+
+    console.log("Generating room", data.roomId);
+    router.push(`/room?roomId=${data.roomId}`); // Navigate to the room page with the new Room ID
   }
 
    return (

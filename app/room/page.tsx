@@ -1,17 +1,38 @@
 /**
+ * /room/page.tsx
+ * 
  * Room page created by app/page.tsx
  * Page where users actually vote
  */
 "use client";
 
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
+import { useEffect } from "react";
 
 export default function RoomPage() {
+    const router = useRouter();
     const searchParams = useSearchParams();
     const roomId = searchParams.get("roomId");
 
     const roomLink = `${typeof window !== 'undefined' ? window.location.origin : ''}/room?roomId=${roomId}`;
+
+    /**
+     * Verifies if the room exists when the component mounts.
+     */
+    useEffect(() => {
+        async function verifyRoom() {
+            const response = await fetch(`/api/checkRoom?roomId=${roomId}`);
+            const data = await response.json();
+
+            if (!data.exists) {
+                alert("Room does not exist. Redirecting to home page.");
+                router.push("/");
+            }
+        }
+
+        verifyRoom();
+    }, [roomId, router]);
 
     /**
     * Copies the current Room ID to the clipboard.
