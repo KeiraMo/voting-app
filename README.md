@@ -15,7 +15,7 @@ A simple backlog refinement story point voting tool built with [Next.js](https:/
 1. **Install dependencies:**
 
    ```bash
-   p/npm install
+   pnpm install
    # or
    yarn install
    ```
