@@ -51,7 +51,7 @@ export default function RoomPage() {
         return () => {
             socket.disconnect();
         };
-    }, []);
+    }, [roomId]);
 
     /**
     * Copies the current Room ID to the clipboard.

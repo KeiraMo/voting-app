@@ -27,10 +27,15 @@ A simple backlog refinement story point voting tool built with [Next.js](https:/
    > This file is used for storing active rooms. It is ignored by git.
 
 3. **Run the development server:**
+   Run both the WebSocket server and Next.js app concurrently:
    ```bash
    pnpm dev
-   # or
-   yarn dev
+   ```
+
+   Or run them separately if needed:
+   ```bash
+   pnpm dev:server  # WebSocket server only (port 3001)
+   pnpm dev:app     # Next.js app only (port 3000)
    ```
 
 4. **Open [http://localhost:3000](http://localhost:3000) in your browser.**
