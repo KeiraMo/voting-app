@@ -8,7 +8,10 @@
 
 import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { io } from "socket.io-client";
+
+const socket = io("http://localhost:3001"); // Initialize socket connection
 
 export default function RoomPage() {
     const router = useRouter();
@@ -33,6 +36,22 @@ export default function RoomPage() {
 
         verifyRoom();
     }, [roomId, router]);
+
+    /**
+     * Initializes the WebSocket connection for live voting updates.
+     */
+    useEffect(() => {
+        if (!roomId) return;
+
+        socket.on("connect", () => {
+            console.log("Connected to WebSocket server with ID:", socket.id);
+            
+        })
+
+        return () => {
+            socket.disconnect();
+        };
+    }, []);
 
     /**
     * Copies the current Room ID to the clipboard.
