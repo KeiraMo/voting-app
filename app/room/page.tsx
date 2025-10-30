@@ -18,6 +18,8 @@ export default function RoomPage() {
     const searchParams = useSearchParams();
     const roomId = searchParams.get("roomId");
 
+    const [messages, setMessages] = useState<string[]>([]);
+
     const roomLink = `${typeof window !== 'undefined' ? window.location.origin : ''}/room?roomId=${roomId}`;
 
     /**
@@ -38,20 +40,35 @@ export default function RoomPage() {
     }, [roomId, router]);
 
     /**
-     * Initializes the WebSocket connection for live voting updates.
+     * Initializes the WebSocket connection and joins the room.
      */
     useEffect(() => {
         if (!roomId) return;
 
         socket.on("connect", () => {
             console.log("Connected to WebSocket server with ID:", socket.id);
-            
-        })
+            socket.emit("joinRoom", roomId);
+        });
 
+        // Server sends a message
+        socket.on("message", (data: { userId: string; message: string }) => {
+            console.log("Message received:", data);
+            setMessages((prevMessages) => [...prevMessages, `${data.userId}: ${data.message}`]);
+        });
+
+        // Cleanup when leaving the page
         return () => {
+            socket.off("connect");
+            socket.off("message");
             socket.disconnect();
         };
     }, [roomId]);
+
+    // Send message to server
+    const sendMessage = (message: string) => {
+        if (!message.trim()) return;
+        socket.emit("message", { roomId, message });
+    };
 
     /**
     * Copies the current Room ID to the clipboard.
@@ -72,6 +89,10 @@ export default function RoomPage() {
 
     const handleVoteSelection = (value: string | number) => {
         console.log("Vote selected:", value);
+        // If the "?" button is clicked, send a test message
+        if (value === "?") {
+        sendMessage("Test message from ?");
+    }
     };
 
     // Button fibonacci vote values
