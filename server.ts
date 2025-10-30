@@ -1,5 +1,5 @@
 /**
- * Socket.io setup for live voting updates.
+ * Socket.io setup for live voting updates
  * /server.ts
  */
 import { createServer } from "http";
