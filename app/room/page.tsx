@@ -5,6 +5,7 @@
  * Page where users actually vote
  */
 "use client";
+test
 
 import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
