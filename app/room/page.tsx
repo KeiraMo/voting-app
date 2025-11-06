@@ -10,6 +10,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import { io } from "socket.io-client";
+import VoteCard from "../components/VoteCard";
 
 const socket = io("http://localhost:3001"); // Initialize socket connection
 
@@ -130,6 +131,7 @@ export default function RoomPage() {
                         </button>
                     ))}
                 </div>
+                <VoteCard name="Me" />
         </main>
     );
 }
