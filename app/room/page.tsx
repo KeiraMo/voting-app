@@ -5,7 +5,6 @@
  * Page where users actually vote
  */
 "use client";
-test
 
 import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
@@ -91,8 +90,8 @@ export default function RoomPage() {
     const handleVoteSelection = (value: string | number) => {
         console.log("Vote selected:", value);
         // If the "?" button is clicked, send a test message
-        if (value === "?") {
-        sendMessage("Test message from ?");
+        if (value) {
+            sendMessage(`Test message from ${value}`);
     }
     };
 
@@ -125,7 +124,7 @@ export default function RoomPage() {
                         <button
                             key={value}
                             onClick={() => handleVoteSelection(value)}
-                            className="w-16 h-16 bg-white text-black font-bold rounded shadow hover:bg-gray-300 transition"
+                            className="w-16 h-16 bg-white text-black font-bold rounded shadow hover:bg-gray-300 transition focus:outline-2 focus:outline-offset-2 focus:outline-gray-50"
                         >
                             {value}
                         </button>
