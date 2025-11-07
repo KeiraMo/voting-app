@@ -10,7 +10,7 @@ interface VoteCardProps {
 
 export default function VoteCard({ name, children }: VoteCardProps) {
     return (
-        <Card sx={{ maxWidth: 345, margin: '1rem', backgroundColor: '#f5f5f5' }}>
+        <Card sx={{ width: 140, height: 200, margin: '1rem', backgroundColor: '#f5f5f5' }}>
             <CardHeader title={name} />
             <CardContent>
                 {children}
