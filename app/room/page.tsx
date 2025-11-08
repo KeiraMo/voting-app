@@ -11,6 +11,7 @@ import Image from "next/image";
 import { useEffect, useState } from "react";
 import { io } from "socket.io-client";
 import VoteCard from "../components/VoteCard";
+import RevealVoteButton from "../components/RevealVoteButton";
 
 const socket = io("http://localhost:3001"); // Initialize socket connection
 
@@ -21,6 +22,7 @@ export default function RoomPage() {
 
     const [messages, setMessages] = useState<string[]>([]);
     const [selectedVote, setSelectedVote] = useState<string | number | null>(null);
+    const [isRevealed, setIsRevealed] = useState<boolean>(false);
 
     const roomLink = `${typeof window !== 'undefined' ? window.location.origin : ''}/room?roomId=${roomId}`;
 
@@ -92,10 +94,15 @@ export default function RoomPage() {
     const handleVoteSelection = (value: string | number) => {
         console.log("Vote selected:", value);
         setSelectedVote(value); // Update selected vote state locally for display
-        // if (value) {
-        //     sendMessage(`Test message from ${value}`);
         socket.emit("message", { roomId, message: `Vote selected: ${value}` });
     };
+
+    const handleReveal = () => {
+        console.log("Reveal votes clicked");
+        setIsRevealed(true);
+        socket.emit("message", { roomId, message: "Votes have been revealed!" });
+    };
+        
 
 
     // Button fibonacci vote values
@@ -137,10 +144,8 @@ export default function RoomPage() {
                         </button>
                     ))}
                 </div>
-                <VoteCard name="Me" voteValue={selectedVote ?? "-"} />
-                <button onClick={() => sendMessage("Test message from reveal button")} className="mt-4 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition">
-                    Reveal Votes
-                </button>
+                <VoteCard name="Me" voteValue={selectedVote} isRevealed={isRevealed} />
+                <RevealVoteButton onClick={handleReveal} />
         </main>
     );
 }
