@@ -5,10 +5,13 @@ A simple backlog refinement story point voting tool built with [Next.js](https:/
 ## Features
 
 - Create and join voting rooms with unique IDs
+- Room link can be copied to clipboard
 - Room existence is checked before joining
 - Persistent room storage using a local `rooms.json` file (for development)
 - Light/dark mode support
-- Custom theme colors
+- Votes can be selected/clicked -> visual cue
+- Reveal Vote button displays vote on card (local)
+
 
 ## Getting Started
 
@@ -16,8 +19,6 @@ A simple backlog refinement story point voting tool built with [Next.js](https:/
 
    ```bash
    pnpm install
-   # or
-   yarn install
    ```
 
 2. **Create a `rooms.json` file in your project root:**
