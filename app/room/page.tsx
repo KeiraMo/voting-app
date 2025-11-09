@@ -23,6 +23,7 @@ export default function RoomPage() {
     const searchParams = useSearchParams();
     const roomId = searchParams.get("roomId") ?? "";
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [messages, setMessages] = useState<string[]>([]);
     const [selectedVote, setSelectedVote] = useState<string | number | null>(null);
     const [isRevealed, setIsRevealed] = useState<boolean>(false);
