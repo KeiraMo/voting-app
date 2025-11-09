@@ -31,10 +31,9 @@ async function writeRoomsFile(rooms: { [key: string]: boolean }): Promise<void> 
 
 /**
  * Creates a new voting room via a HTTP POST request.
- * @param request The incoming request object.
  * @returns A JSON response containing the new room ID.
  */
-export async function POST(request: Request) {
+export async function POST() {
     const rooms = await readRoomsFile(); 
     const roomId = Math.random().toString(36).substring(2, 8).toUpperCase(); // Generate a 6-character room ID
     

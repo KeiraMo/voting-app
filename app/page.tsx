@@ -4,7 +4,6 @@
  * This is the home/login page of the application.
  */
 "use client";
-
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
