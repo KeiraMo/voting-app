@@ -8,7 +8,6 @@ import * as React from 'react';
 import Card from '@mui/material/Card';
 import CardHeader from '@mui/material/CardHeader'; // Wrapper for the Card header
 import CardContent from '@mui/material/CardContent'; // Wrapper for the Card content
-import isRevealed from '../room/page';
 
 interface VoteCardProps {
     name: string;
