@@ -10,55 +10,40 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { io } from "socket.io-client";
 import type * as Types from "../../types/types";
+import { Socket } from "socket.io";
 
-import VoteCard from "../components/VoteCard";
-import RevealVoteButton from "../components/RevealVoteButton";
 import RoomHeader from "../components/RoomHeader";
 import VotingButtons from "../components/VotingButtons";
+import VoteCard from "../components/VoteCard";
+import RevealVoteButton from "../components/RevealVoteButton";
 import Footer from "../components/Footer";
 import UsernameInputCard from "../components/UsernameInputCard";
 
-import { Socket } from "socket.io";
-
+// --- Constants --- //
 const socket = io("http://localhost:3001"); // Initialize socket connection
+const VOTE_OPTIONS = ["?", 1, 2, 3, 5, 8, 13]; // Button fibonacci vote values
+
+// --- Main Room Page Component --- //
 
 export default function RoomPage() {
-    // ROUTER & STATE //
+    // Router and params //
     const router = useRouter();
     const searchParams = useSearchParams();
     const roomId = searchParams.get("roomId") ?? "";
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    // --- States ---
     const [isRevealed, setIsRevealed] = useState<boolean>(false);
-    
-    // Username and join state
-    const [username, setUsername] = useState<string>(() => {
-        try {
-            const storedName = localStorage.getItem("username");
-            return storedName ? storedName : "";
-        } catch (error) {
-            console.error("Error accessing localStorage:", error);
-            return "";
-        }
-    });
+    const [username, setUsername] = useState<string>("");
     const [joined, setJoined] = useState<boolean>(false);
-    
-    // Room state from server
     const [roomState, setRoomState] = useState<Types.RoomState | null>(null);
-
-    // local selected vote for "Me" card
     const [selectedVote, setSelectedVote] = useState<string | number | null>(null);
 
-    // Socket ref to keep when rerendering
     const socketRef = useRef<Socket | null>(null);
-
-
     const roomLink = `${typeof window !== 'undefined' ? window.location.origin : ''}/room?roomId=${roomId}`;
-    const voteOptions = ["?", 1, 2, 3, 5, 8, 13]; // Button fibonacci vote values
 
-    // EFFECTS //
+    // --- Effects ---
 
-    // Verifies if the room exists when the component mounts.
+    // Verifies if the room exists when the component mounts
     useEffect(() => {
         async function verifyRoom() {
             const response = await fetch(`/api/checkRoom?roomId=${roomId}`);
@@ -69,15 +54,15 @@ export default function RoomPage() {
                 router.push("/");
             }
         }
-        verifyRoom();
+        if (roomId) verifyRoom();
     }, [roomId, router]);
 
-    // Initializes the WebSocket connection and joins the room.
+    // Socket connection and listeners
     useEffect(() => {
         if (!roomId) return;
         socket.on("connect", () => {
             console.log("Connected to WebSocket server with ID:", socket.id);
-            socket.emit("joinRoom", roomId);
+            // socket.emit("joinRoom", roomId);
         });
         // Cleanup when leaving the page
         return () => {
@@ -87,13 +72,21 @@ export default function RoomPage() {
         };
     }, [roomId]);
 
+    // Load username from localStorage after mount
+    useEffect(() => {
+        if (typeof window !== "undefined") {
+            const storedName = localStorage.getItem("username");
+            if (storedName) setUsername(storedName);
+        }
+    }, []);
 
     // Saves username to localStorage when it changes.
     useEffect(() => {
         if (username) localStorage.setItem("username", username);
     }, [username]);
 
-    // HANDLERS //
+
+    // --- Handlers ---
     
     // Copies the current Room ID to the clipboard.
     const copyToClipboard = async () => {
@@ -120,17 +113,21 @@ export default function RoomPage() {
     };
 
     const handleJoin = (name: string) => {
-        console.log("join button clicked");
-        // if (!name || name.trim() === "") {
-        //     return alert("Please enter a valid username.");
-        // }
-        // setUsername(name);
-        // localStorage.setItem("username", name);
-        socket.emit("joinRoom", { roomId, username: name });
+        console.log("join button clicked - handle join entered");
+        if (!name || name.trim() === "") {
+            return alert("Please enter a valid username.");
+        }
+        setUsername(name);
+        console.log("username set");
         setJoined(true);
+        console.log("joined set to true");
+        console.log("Emitting joinRoom with:", { roomId, username: name });
+        socket.emit("joinRoom", { roomId, username: name });
+        console.log("joinRoom emitted");
+        
     }
         
-    // RENDER //
+    // --- Render --- //
     return (
         <main className="min-h-screen flex flex-col items-center p-8 text-center">
             {(!joined ?
@@ -145,7 +142,7 @@ export default function RoomPage() {
                 <>
                     <RoomHeader roomId={roomId} onCopy={copyToClipboard} />
                     <VotingButtons
-                        voteOptions={voteOptions}
+                        voteOptions={VOTE_OPTIONS}
                         selectedVote={selectedVote}
                         onVoteSelect={handleVoteSelection}
                     />

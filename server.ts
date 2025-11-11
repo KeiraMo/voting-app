@@ -4,8 +4,25 @@
  */
 import { createServer } from "http";
 import { Server } from "socket.io";
-
 import fs from "fs";
+
+// Type defs
+type RoomUser = { 
+    userId: string; 
+    username: string 
+};
+type RoomData = {
+  roomId: string;
+  users: RoomUser[];
+  votes: Record<string, number | string | null>;
+  isRevealed: boolean;
+};
+
+
+export function saveRoomsToFile() {
+    console.log("saveRoomsToFile - Saving rooms data to file...");
+    fs.writeFileSync("rooms.json", JSON.stringify(Object.fromEntries(roomsData), null, 2));
+}
 
 const httpServer = createServer();
 const io = new Server(httpServer, {
@@ -24,9 +41,14 @@ io.on("connection", (socket) => {
     console.log("New client connected:", socket.id);
 
     // Join a specific room
-    socket.on("joinRoom", (payload: { roomId: string; userId: string; username: string }) => {
-        const { roomId, userId, username } = payload;
-        const uid = socket.id;
+    socket.on("joinRoom", (payload: { roomId: string; userId?: string; username: string }) => {
+        console.log("Entering joinRoom handler");
+        const { roomId, username } = payload;
+        if (!username || !roomId) {
+            console.error("joinRoom: Missing username or roomId");
+            return;
+        }
+        const uid = socket.id; // Use socket ID as user ID
 
         // Save username to socket
         socket.data.userId = uid;
@@ -47,17 +69,20 @@ io.on("connection", (socket) => {
         const room = roomsData.get(roomId)!;
 
         // Add/update user
-        const existingUserIndex = room.users.findIndex((user: any) => user.userId === uid);
+        const existingUserIndex = room.users.findIndex((user: RoomUser) => user.userId === uid);
         if (existingUserIndex === -1) {
             room.users.push({ userId: uid, username: socket.data.username });
             room.votes[uid] = null; // Initialize vote
         } else {
-            existingUserIndex.username = socket.data.username;
+            // Update existing user
+            room.users[existingUserIndex].username = socket.data.username;
         }
 
-         // Broadcast updated room state or user list to everyone in that room
+        // Broadcast updated room state or user list to everyone in that room
         io.to(roomId).emit("roomState", room);
         io.to(roomId).emit("userJoined", { userId: uid, username: socket.data.username });
+        saveRoomsToFile();
+        console.log("After join:", JSON.parse(fs.readFileSync("rooms.json", "utf-8")));
     });
 
     // Listen for a message event 
@@ -72,12 +97,13 @@ io.on("connection", (socket) => {
     // For each room the socket is in, remove user and broadcast update
     const myRooms = Array.from(socket.rooms).filter(r => r !== socket.id);
     myRooms.forEach((roomId) => {
-      const room = roomsData.get(roomId);
-      if (!room) return;
-      room.users = room.users.filter(u => u.userId !== socket.data.userId);
-      delete room.votes[socket.data.userId];
-      io.to(roomId).emit("roomState", room);
-      io.to(roomId).emit("userLeft", { userId: socket.data.userId });
+        const room = roomsData.get(roomId);
+        if (!room) return;
+        room.users = room.users.filter((u: RoomUser) => u.userId !== socket.data.userId);
+        delete room.votes[socket.data.userId];
+        io.to(roomId).emit("roomState", room);
+        io.to(roomId).emit("userLeft", { userId: socket.data.userId });
+        saveRoomsToFile();
     });
   });
 });

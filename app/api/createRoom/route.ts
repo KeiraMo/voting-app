@@ -11,7 +11,7 @@ import path from "path";
 const ACTIVE_ROOMS_FILE = path.join(process.cwd(), 'rooms.json');
 
 
-async function readRoomsFile(): Promise<{ [key: string]: boolean }> {
+async function readRoomsFile(): Promise<{ [key: string]: { roomId: string; users: string[]; votes: { [key: string]: number | null }; isRevealed: boolean } }> {
     try {
         const data = await fs.readFile(ACTIVE_ROOMS_FILE, 'utf-8');
         return JSON.parse(data);
@@ -21,7 +21,7 @@ async function readRoomsFile(): Promise<{ [key: string]: boolean }> {
     }
 }
 
-async function writeRoomsFile(rooms: { [key: string]: boolean }): Promise<void> {
+async function writeRoomsFile(rooms: { [key: string]: { users: string[]; votes: { [key: string]: number | null }; isRevealed: boolean } } ): Promise<void> {
     try {
         await fs.writeFile(ACTIVE_ROOMS_FILE, JSON.stringify(rooms, null, 2), 'utf-8');
     } catch (error) {
@@ -38,10 +38,15 @@ export async function POST() {
     const roomId = Math.random().toString(36).substring(2, 8).toUpperCase(); // Generate a 6-character room ID
     
     console.log("Created new room with ID:", roomId);
-    rooms[roomId] = true; // Store the new room ID
-
+    // Store the new room ID/users/votes state/reveal state
+    rooms[roomId] = {
+        roomId,
+        users: [],
+        votes: {},
+        isRevealed: false
+    }; 
     await writeRoomsFile(rooms);
-    console.log("Active rooms updated:", Object.keys(rooms));
+    console.log("ACTIVE ROOMS UPDATED:", Object.keys(rooms));
     return NextResponse.json({ roomId });
 }
 
