@@ -85,6 +85,10 @@ export default function RoomPage() {
         if (username) localStorage.setItem("username", username);
     }, [username]);
 
+    // Debug: Log joined state changes
+    useEffect(() => {
+        console.log("joined state changed:", joined);
+    }, [joined]);
 
     // --- Handlers ---
     
@@ -123,8 +127,6 @@ export default function RoomPage() {
         console.log("joined set to true");
         console.log("Emitting joinRoom with:", { roomId, username: name });
         socket.emit("joinRoom", { roomId, username: name });
-        console.log("joinRoom emitted");
-        
     }
         
     // --- Render --- //
