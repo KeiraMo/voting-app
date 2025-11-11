@@ -9,6 +9,8 @@ import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import { createTheme } from '@mui/material/styles';
 import { purple } from '@mui/material/colors';
+import Image from "next/image";
+import { Button } from "@mui/material";
 
 const theme = createTheme({
   palette: {
@@ -23,11 +25,13 @@ const theme = createTheme({
 
 interface UsernameInputCardProps {
     username: string;
+    onClick: (name: string) => void;
+    onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
 
 
-export default function UsernameInputCard() {
+export default function UsernameInputCard({ username, onClick, onChange }: UsernameInputCardProps) {
     return (
         <Box
         component="form"
@@ -56,7 +60,8 @@ export default function UsernameInputCard() {
                 required
                 id="username-input"
                 label="Username"
-                defaultValue=""
+                value={username}
+                onChange={onChange}
                 sx={{
                     width: 220,
                     height: 70,
@@ -74,7 +79,26 @@ export default function UsernameInputCard() {
 
                     },
                 }}
+            />
+            <Button
+                onClick={() => onClick(username)}
+                sx={{
+                    m: 2,
+                    width: 200,
+                    height: 50,
+                    backgroundColor: theme.palette.primary.main,
+                    color: 'white',
+                }}
+                aria-label="Enter room with nickname"
+            >
+                <Image
+                    src="/arrow-right.svg"
+                    alt="arrow-right"
+                    width={20}
+                    height={20}
+                    className="inline-block ml-2 align-middle filter invert"
                 />
+            </Button>
         </Box>
     );
 }

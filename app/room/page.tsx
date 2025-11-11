@@ -87,6 +87,12 @@ export default function RoomPage() {
         };
     }, [roomId]);
 
+
+    // Saves username to localStorage when it changes.
+    useEffect(() => {
+        if (username) localStorage.setItem("username", username);
+    }, [username]);
+
     // HANDLERS //
     
     // Copies the current Room ID to the clipboard.
@@ -114,7 +120,12 @@ export default function RoomPage() {
     };
 
     const handleJoin = (name: string) => {
-        setUsername(name);
+        console.log("join button clicked");
+        // if (!name || name.trim() === "") {
+        //     return alert("Please enter a valid username.");
+        // }
+        // setUsername(name);
+        // localStorage.setItem("username", name);
         socket.emit("joinRoom", { roomId, username: name });
         setJoined(true);
     }
@@ -122,16 +133,27 @@ export default function RoomPage() {
     // RENDER //
     return (
         <main className="min-h-screen flex flex-col items-center p-8 text-center">
-            <UsernameInputCard />
-            <RoomHeader roomId={roomId} onCopy={copyToClipboard} />
-            <VotingButtons
-                voteOptions={voteOptions}
-                selectedVote={selectedVote}
-                onVoteSelect={handleVoteSelection}
-            />
-            <VoteCard name="Me" voteValue={selectedVote} isRevealed={isRevealed} />
-            <RevealVoteButton onClick={handleReveal} />
-            <Footer />
+            {(!joined ?
+                <div className="flex items-center justify-center w-full h-full">    
+                    <UsernameInputCard
+                        username={username}
+                        onClick={handleJoin}
+                        onChange={(e) => setUsername(e.target.value)}
+                    />
+                </div>
+            :
+                <>
+                    <RoomHeader roomId={roomId} onCopy={copyToClipboard} />
+                    <VotingButtons
+                        voteOptions={voteOptions}
+                        selectedVote={selectedVote}
+                        onVoteSelect={handleVoteSelection}
+                    />
+                    <VoteCard name={username} voteValue={selectedVote} isRevealed={isRevealed} />
+                    <RevealVoteButton onClick={handleReveal} />
+                    <Footer />
+                </>
+            )}
         </main>
     );
 }
