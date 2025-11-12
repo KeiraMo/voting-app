@@ -7,33 +7,43 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { io } from "socket.io-client";
+import type * as Types from "../../types/types";
+import { Socket } from "socket.io";
 
-import VoteCard from "../components/VoteCard";
-import RevealVoteButton from "../components/RevealVoteButton";
 import RoomHeader from "../components/RoomHeader";
 import VotingButtons from "../components/VotingButtons";
+import VoteCard from "../components/VoteCard";
+import RevealVoteButton from "../components/RevealVoteButton";
 import Footer from "../components/Footer";
+import UsernameInputCard from "../components/UsernameInputCard";
 
+// --- Constants --- //
 const socket = io("http://localhost:3001"); // Initialize socket connection
+const VOTE_OPTIONS = ["?", 1, 2, 3, 5, 8, 13]; // Button fibonacci vote values
+
+// --- Main Room Page Component --- //
 
 export default function RoomPage() {
+    // Router and params //
     const router = useRouter();
     const searchParams = useSearchParams();
     const roomId = searchParams.get("roomId") ?? "";
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const [messages, setMessages] = useState<string[]>([]);
-    const [selectedVote, setSelectedVote] = useState<string | number | null>(null);
+    // --- States ---
     const [isRevealed, setIsRevealed] = useState<boolean>(false);
+    const [username, setUsername] = useState<string>("");
+    const [joined, setJoined] = useState<boolean>(false);
+    const [roomState, setRoomState] = useState<Types.RoomState | null>(null);
+    const [selectedVote, setSelectedVote] = useState<string | number | null>(null);
 
+    const socketRef = useRef<Socket | null>(null);
     const roomLink = `${typeof window !== 'undefined' ? window.location.origin : ''}/room?roomId=${roomId}`;
-    const voteOptions = ["?", 1, 2, 3, 5, 8, 13]; // Button fibonacci vote values
 
-    // EFFECTS //
+    // --- Effects ---
 
-    // Verifies if the room exists when the component mounts.
+    // Verifies if the room exists when the component mounts
     useEffect(() => {
         async function verifyRoom() {
             const response = await fetch(`/api/checkRoom?roomId=${roomId}`);
@@ -44,30 +54,44 @@ export default function RoomPage() {
                 router.push("/");
             }
         }
-        verifyRoom();
+        if (roomId) verifyRoom();
     }, [roomId, router]);
 
-    // Initializes the WebSocket connection and joins the room.
+    // Socket connection and listeners
     useEffect(() => {
         if (!roomId) return;
         socket.on("connect", () => {
             console.log("Connected to WebSocket server with ID:", socket.id);
-            socket.emit("joinRoom", roomId);
-        });
-        // Server sends a message
-        socket.on("message", (data: { userId: string; message: string }) => {
-            console.log("Message received:", data);
-            setMessages((prevMessages) => [...prevMessages, `${data.userId}: ${data.message}`]);
+            // socket.emit("joinRoom", roomId);
         });
         // Cleanup when leaving the page
         return () => {
+            console.log("Disconnecting socket...");
             socket.off("connect");
             socket.off("message");
             socket.disconnect();
         };
     }, [roomId]);
 
-    // HANDLERS //
+    // Load username from localStorage after mount
+    useEffect(() => {
+        if (typeof window !== "undefined") {
+            const storedName = localStorage.getItem("username");
+            if (storedName) setUsername(storedName);
+        }
+    }, []);
+
+    // Saves username to localStorage when it changes.
+    useEffect(() => {
+        if (username) localStorage.setItem("username", username);
+    }, [username]);
+
+    // Debug: Log joined state changes
+    useEffect(() => {
+        console.log("joined state changed:", joined);
+    }, [joined]);
+
+    // --- Handlers ---
     
     // Copies the current Room ID to the clipboard.
     const copyToClipboard = async () => {
@@ -92,19 +116,44 @@ export default function RoomPage() {
         setIsRevealed(true);
         socket.emit("message", { roomId, message: "Votes have been revealed!" });
     };
+
+    const handleJoin = (name: string) => {
+        console.log("join button clicked - handle join entered");
+        if (!name || name.trim() === "") {
+            return alert("Please enter a valid username.");
+        }
+        setUsername(name);
+        console.log("username set");
+        setJoined(true);
+        console.log("joined set to true");
+        console.log("Emitting joinRoom with:", { roomId, username: name });
+        socket.emit("joinRoom", { roomId, username: name });
+    }
         
-    // RENDER //
+    // --- Render --- //
     return (
         <main className="min-h-screen flex flex-col items-center p-8 text-center">
-            <RoomHeader roomId={roomId} onCopy={copyToClipboard} />
-            <VotingButtons
-                voteOptions={voteOptions}
-                selectedVote={selectedVote}
-                onVoteSelect={handleVoteSelection}
-            />
-            <VoteCard name="Me" voteValue={selectedVote} isRevealed={isRevealed} />
-            <RevealVoteButton onClick={handleReveal} />
-            <Footer />
+            {(!joined ?
+                <div className="flex items-center justify-center w-full h-full">    
+                    <UsernameInputCard
+                        username={username}
+                        onClick={handleJoin}
+                        onChange={(e) => setUsername(e.target.value)}
+                    />
+                </div>
+            :
+                <>
+                    <RoomHeader roomId={roomId} onCopy={copyToClipboard} />
+                    <VotingButtons
+                        voteOptions={VOTE_OPTIONS}
+                        selectedVote={selectedVote}
+                        onVoteSelect={handleVoteSelection}
+                    />
+                    <VoteCard name={username} voteValue={selectedVote} isRevealed={isRevealed} />
+                    <RevealVoteButton onClick={handleReveal} />
+                    <Footer />
+                </>
+            )}
         </main>
     );
 }
