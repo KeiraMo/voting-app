@@ -66,6 +66,7 @@ export default function RoomPage() {
         });
         // Cleanup when leaving the page
         return () => {
+            console.log("Disconnecting socket...");
             socket.off("connect");
             socket.off("message");
             socket.disconnect();
